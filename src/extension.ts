@@ -8,7 +8,6 @@ import {
   ExtensionContext,
   InputBoxOptions,
   OpenDialogOptions,
-  QuickPickOptions,
   Uri,
   window,
 } from "vscode";
@@ -18,12 +17,8 @@ import { analyzeDependencies } from "./utils";
 export function activate (_context: ExtensionContext) {
   analyzeDependencies();
 
-  commands.registerCommand("extension.new-feature-bloc", async (uri: Uri) => {
+  commands.registerCommand("extension.new-feature", async (uri: Uri) => {
     Go(uri, false);
-  });
-
-  commands.registerCommand("extension.new-feature-cubit", async (uri: Uri) => {
-    Go(uri, true);
   });
 }
 
@@ -41,7 +36,7 @@ export async function Go (uri: Uri, useCubit: boolean) {
   let targetDirectory = "";
   try {
     targetDirectory = await getTargetDirectory(uri);
-  } catch (error) {
+  } catch (error: any) {
     window.showErrorMessage(error.message);
   }
 
@@ -101,7 +96,7 @@ export async function promptForTargetDirectory (): Promise<string | undefined> {
     canSelectFolders: true,
   };
 
-  return window.showOpenDialog(options).then((uri: { fsPath: any; }[]) => {
+  return window.showOpenDialog(options).then((uri: any) => {
     if (_.isNil(uri) || _.isEmpty(uri)) {
       return undefined;
     }

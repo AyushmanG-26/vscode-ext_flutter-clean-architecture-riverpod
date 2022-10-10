@@ -31,14 +31,8 @@
   "contributes": {
     "commands": [
       {
-        "command": "extension.new-feature-bloc",
+        "command": "extension.new-feature",
         "title": "Bloc: New Feature",
-        "category": "Flutter Clean Architecture",
-        "icon": "assets/logo.png"
-      },
-      {
-        "command": "extension.new-feature-cubit",
-        "title": "Cubit: New Feature",
         "category": "Flutter Clean Architecture",
         "icon": "assets/logo.png"
       }
@@ -46,13 +40,8 @@
     "menus": {
       "explorer/context": [
         {
-          "command": "extension.new-feature-bloc",
+          "command": "extension.new-feature",
           "group": "cleanArchitectureGroup@1",
-          "when": "explorerResourceIsFolder"
-        },
-        {
-          "command": "extension.new-feature-cubit",
-          "group": "cleanArchitectureGroup@2",
           "when": "explorerResourceIsFolder"
         }
       ]
@@ -82,7 +71,7 @@
     "mocha": "^6.1.4",
     "tslint": "^5.12.1",
     "typescript": "^3.3.1",
-    "vsce": "^1.81.1",
+    "vsce": "^2.11.0",
     "vscode-test": "^1.2.0"
   },
   "dependencies": {
@@ -91,7 +80,8 @@
     "js-yaml": "^3.13.1",
     "lodash": "^4.17.21",
     "mkdirp": "^0.5.1",
-    "semver": "^6.3.0"
+    "semver": "^6.3.0",
+    "yarn": "^1.22.19"
   },
   "config": {
     "commitizen": {
