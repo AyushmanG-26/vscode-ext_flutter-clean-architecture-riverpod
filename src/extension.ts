@@ -110,11 +110,11 @@ export async function promptForTargetDirectory (): Promise<string | undefined> {
 }
 
 export function promptForFeatureName (): Thenable<string | undefined> {
-  const blocNamePromptOptions: InputBoxOptions = {
+  const featureNamePromptOptions: InputBoxOptions = {
     prompt: "Feature Name",
     placeHolder: "counter",
   };
-  return window.showInputBox(blocNamePromptOptions);
+  return window.showInputBox(featureNamePromptOptions);
 }
 
 export async function generateFeatureArchitecture (
