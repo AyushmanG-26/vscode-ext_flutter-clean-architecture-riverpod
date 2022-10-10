@@ -13,13 +13,6 @@ import {
   window,
 } from "vscode";
 import { existsSync, lstatSync, writeFile, appendFile } from "fs";
-import {
-  getBlocEventTemplate,
-  getBlocStateTemplate,
-  getBlocTemplate,
-  getCubitStateTemplate,
-  getCubitTemplate,
-} from "./templates";
 import { analyzeDependencies } from "./utils";
 
 export function activate (_context: ExtensionContext) {
@@ -61,8 +54,6 @@ export async function Go (uri: Uri, useCubit: boolean) {
     await generateFeatureArchitecture(
       `${featureName}`,
       targetDirectory,
-      useEquatable,
-      useCubit
     );
     window.showInformationMessage(
       `Successfully Generated ${pascalCaseFeatureName} Feature`
@@ -110,7 +101,7 @@ export async function promptForTargetDirectory (): Promise<string | undefined> {
     canSelectFolders: true,
   };
 
-  return window.showOpenDialog(options).then((uri) => {
+  return window.showOpenDialog(options).then((uri: { fsPath: any; }[]) => {
     if (_.isNil(uri) || _.isEmpty(uri)) {
       return undefined;
     }
@@ -126,60 +117,9 @@ export function promptForFeatureName (): Thenable<string | undefined> {
   return window.showInputBox(blocNamePromptOptions);
 }
 
-export async function promptForUseEquatable (): Promise<boolean> {
-  const useEquatablePromptValues: string[] = ["no (default)", "yes (advanced)"];
-  const useEquatablePromptOptions: QuickPickOptions = {
-    placeHolder:
-      "Do you want to use the Equatable Package in bloc to override equality comparisons?",
-    canPickMany: false,
-  };
-
-  const answer = await window.showQuickPick(
-    useEquatablePromptValues,
-    useEquatablePromptOptions
-  );
-
-  return answer === "yes (advanced)";
-}
-
-async function generateBlocCode (
-  blocName: string,
-  targetDirectory: string,
-  useEquatable: boolean
-) {
-  const blocDirectoryPath = `${targetDirectory}/bloc`;
-  if (!existsSync(blocDirectoryPath)) {
-    await createDirectory(blocDirectoryPath);
-  }
-
-  await Promise.all([
-    createBlocEventTemplate(blocName, targetDirectory, useEquatable),
-    createBlocStateTemplate(blocName, targetDirectory, useEquatable),
-    createBlocTemplate(blocName, targetDirectory, useEquatable),
-  ]);
-}
-
-async function generateCubitCode (
-  blocName: string,
-  targetDirectory: string,
-  useEquatable: boolean
-) {
-  const blocDirectoryPath = `${targetDirectory}/cubit`;
-  if (!existsSync(blocDirectoryPath)) {
-    await createDirectory(blocDirectoryPath);
-  }
-
-  await Promise.all([
-    createCubitStateTemplate(blocName, targetDirectory, useEquatable),
-    createCubitTemplate(blocName, targetDirectory, useEquatable),
-  ]);
-}
-
 export async function generateFeatureArchitecture (
   featureName: string,
   targetDirectory: string,
-  useEquatable: boolean,
-  useCubit: boolean
 ) {
   // Create the features directory if its does not exist yet
   const featuresDirectoryPath = getFeaturesDirectoryPath(targetDirectory);
@@ -213,15 +153,10 @@ export async function generateFeatureArchitecture (
     "presentation"
   );
   await createDirectories(presentationDirectoryPath, [
-    useCubit ? "cubit" : "bloc",
-    "pages",
+    "providers",
+    "screens",
     "widgets",
   ]);
-
-  // Generate the bloc code in the presentation layer
-  useCubit
-    ? await generateCubitCode(featureName, presentationDirectoryPath, useEquatable)
-    : await generateBlocCode(featureName, presentationDirectoryPath, useEquatable);
 }
 
 export function getFeaturesDirectoryPath (currentDirectory: string): string {
@@ -259,141 +194,11 @@ export async function createDirectories (
 
 function createDirectory (targetDirectory: string): Promise<void> {
   return new Promise((resolve, reject) => {
-    mkdirp(targetDirectory, (error) => {
+    mkdirp(targetDirectory, (error: any) => {
       if (error) {
         return reject(error);
       }
       resolve();
     });
-  });
-}
-
-function createBlocEventTemplate (
-  blocName: string,
-  targetDirectory: string,
-  useEquatable: boolean
-) {
-  const snakeCaseBlocName = changeCase.snakeCase(blocName.toLowerCase());
-  const targetPath = `${targetDirectory}/bloc/${snakeCaseBlocName}_event.dart`;
-  if (existsSync(targetPath)) {
-    throw Error(`${snakeCaseBlocName}_event.dart already exists`);
-  }
-  return new Promise(async (resolve, reject) => {
-    writeFile(
-      targetPath,
-      getBlocEventTemplate(blocName, useEquatable),
-      "utf8",
-      (error) => {
-        if (error) {
-          reject(error);
-          return;
-        }
-        resolve(true);
-      }
-    );
-  });
-}
-
-function createBlocStateTemplate (
-  blocName: string,
-  targetDirectory: string,
-  useEquatable: boolean
-) {
-  const snakeCaseBlocName = changeCase.snakeCase(blocName.toLowerCase());
-  const targetPath = `${targetDirectory}/bloc/${snakeCaseBlocName}_state.dart`;
-  if (existsSync(targetPath)) {
-    throw Error(`${snakeCaseBlocName}_state.dart already exists`);
-  }
-  return new Promise(async (resolve, reject) => {
-    writeFile(
-      targetPath,
-      getBlocStateTemplate(blocName, useEquatable),
-      "utf8",
-      (error) => {
-        if (error) {
-          reject(error);
-          return;
-        }
-        resolve(true);
-      }
-    );
-  });
-}
-
-function createBlocTemplate (
-  blocName: string,
-  targetDirectory: string,
-  useEquatable: boolean
-) {
-  const snakeCaseBlocName = changeCase.snakeCase(blocName.toLowerCase());
-  const targetPath = `${targetDirectory}/bloc/${snakeCaseBlocName}_bloc.dart`;
-  if (existsSync(targetPath)) {
-    throw Error(`${snakeCaseBlocName}_bloc.dart already exists`);
-  }
-  return new Promise(async (resolve, reject) => {
-    writeFile(
-      targetPath,
-      getBlocTemplate(blocName, useEquatable),
-      "utf8",
-      (error) => {
-        if (error) {
-          reject(error);
-          return;
-        }
-        resolve(true);
-      }
-    );
-  });
-}
-
-function createCubitStateTemplate (
-  blocName: string,
-  targetDirectory: string,
-  useEquatable: boolean
-) {
-  const snakeCaseBlocName = changeCase.snakeCase(blocName.toLowerCase());
-  const targetPath = `${targetDirectory}/cubit/${snakeCaseBlocName}_state.dart`;
-  if (existsSync(targetPath)) {
-    throw Error(`${snakeCaseBlocName}_state.dart already exists`);
-  }
-  return new Promise(async (resolve, reject) => {
-    writeFile(
-      targetPath,
-      getCubitStateTemplate(blocName, useEquatable),
-      "utf8",
-      (error) => {
-        if (error) {
-          reject(error);
-          return;
-        }
-        resolve(true);
-      }
-    );
-  });
-}
-
-function createCubitTemplate (
-  blocName: string,
-  targetDirectory: string,
-  useEquatable: boolean
-) {
-  const snakeCaseBlocName = changeCase.snakeCase(blocName.toLowerCase());
-  const targetPath = `${targetDirectory}/cubit/${snakeCaseBlocName}_cubit.dart`;
-  if (existsSync(targetPath)) {
-    throw Error(`${snakeCaseBlocName}_cubit.dart already exists`);
-  }
-  return new Promise(async (resolve, reject) => {
-    writeFile(
-      targetPath,
-      getCubitTemplate(blocName, useEquatable),
-      "utf8",
-      (error) => {
-        if (error) {
-          reject(error);
-          return;
-        }
-        resolve(true);
-      }
-    );
   });
 }
