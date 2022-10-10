@@ -23,7 +23,7 @@
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
-     {
+      {
         "command": "extension.new-feature",
         "title": "Riverpod: New Feature",
         "category": "Flutter Clean Architecture"
