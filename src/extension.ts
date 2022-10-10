@@ -11,18 +11,16 @@ import {
   Uri,
   window,
 } from "vscode";
-import { existsSync, lstatSync, writeFile, appendFile } from "fs";
-import { analyzeDependencies } from "./utils";
+import { existsSync, lstatSync } from "fs";
 
 export function activate (_context: ExtensionContext) {
-  analyzeDependencies();
 
   commands.registerCommand("extension.new-feature", async (uri: Uri) => {
-    Go(uri, false);
+    go(uri);
   });
 }
 
-export async function Go (uri: Uri, useCubit: boolean) {
+export async function go (uri: Uri) {
   // Show feature prompt
   let featureName = await promptForFeatureName();
 
@@ -39,8 +37,6 @@ export async function Go (uri: Uri, useCubit: boolean) {
   } catch (error: any) {
     window.showErrorMessage(error.message);
   }
-
-  const useEquatable = true;
 
   const pascalCaseFeatureName = changeCase.pascalCase(
     featureName.toLowerCase()
@@ -86,7 +82,7 @@ export async function getTargetDirectory (uri: Uri): Promise<string> {
     targetDirectory = uri.fsPath;
   }
 
-  return targetDirectory;
+  return targetDirectory!;
 }
 
 export async function promptForTargetDirectory (): Promise<string | undefined> {
@@ -189,11 +185,11 @@ export async function createDirectories (
 
 function createDirectory (targetDirectory: string): Promise<void> {
   return new Promise((resolve, reject) => {
-    mkdirp(targetDirectory, (error: any) => {
-      if (error) {
-        return reject(error);
-      }
-      resolve();
-    });
+    try {
+		mkdirp(targetDirectory);
+		resolve();
+	} catch (error) {
+		reject(error);
+	}
   });
 }
